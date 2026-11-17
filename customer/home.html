@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Home - Online Food Ordering</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/customer.css" />
+</head>
+<body>
+  <header class="navbar">
+    <h1>Online Food Ordering</h1>
+    <nav>
+      <a href="home.html" class="nav-link active">Home</a>
+      <a href="menu.html" class="nav-link">Menu</a>
+      <a href="cart.html" class="nav-link">Cart (<span id="cart-count">0</span>)</a>
+      <a href="my-orders.html" class="nav-link">My Orders</a>
+      <button id="logout-btn" class="btn secondary small">Logout</button>
+    </nav>
+  </header>
+  <main>
+    <section class="hero">
+      <h2>Welcome, <span id="cust-name"></span>!</h2>
+      <p>Explore our delicious menu and place your order.</p>
+    </section>
+    <section class="categories">
+      <h3>Categories</h3>
+      <div id="category-list" class="btn-group"></div>
+    </section>
+    <section class="featured">
+      <h3>Featured Items</h3>
+      <div id="featured-list" class="grid"></div>
+    </section>
+  </main>
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/menu.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script>
+    // Ensure logged in
+    const user = Session.getCurrentUser();
+    if (!user || user.type !== 'customer') {
+      window.location.href = '../index.html';
+    } else {
+      document.getElementById('cust-name').textContent = Storage.getCustomerById(user.id).name;
+    }
+    // Populate cart count
+    document.getElementById('cart-count').textContent = Cart.getCount(user.id);
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Session.clear();
+      window.location.href = '../index.html';
+    });
+    // Load categories & featured items
+    Menu.renderHome();
+  </script>
+</body>
+</html>

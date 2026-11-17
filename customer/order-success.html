@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Success - Online Food Ordering</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/customer.css" />
+</head>
+<body>
+  <header class="navbar"><h1>Order Placed</h1></header>
+  <main class="centered">
+    <section class="form-section">
+      <h2>Thank you for your order!</h2>
+      <p>Your order has been placed successfully.</p>
+      <p><strong>Order ID:</strong> <span id="order-id"></span></p>
+      <button id="view-orders" class="btn primary">View My Orders</button>
+      <p><a href="home.html">Back to Home</a></p>
+    </section>
+  </main>
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    const user = Session.getCurrentUser();
+    if (!user || user.type !== 'customer') { window.location.href = '../index.html'; }
+    const params = App.getQueryParams();
+    const orderId = params.orderId || '';
+    document.getElementById('order-id').textContent = orderId;
+    document.getElementById('view-orders').addEventListener('click',()=>{ window.location.href='my-orders.html'; });
+  </script>
+</body>
+</html>

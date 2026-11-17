@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout - Online Food Ordering</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/customer.css" />
+</head>
+<body>
+  <header class="navbar">
+    <h1>Checkout</h1>
+    <nav>
+      <a href="home.html" class="nav-link">Home</a>
+      <a href="menu.html" class="nav-link">Menu</a>
+      <a href="cart.html" class="nav-link">Cart (<span id="cart-count">0</span>)</a>
+      <a href="my-orders.html" class="nav-link">My Orders</a>
+      <button id="logout-btn" class="btn secondary small">Logout</button>
+    </nav>
+  </header>
+  <main>
+    <section class="checkout-section customer-section">
+      <h2>Order Summary</h2>
+      <table id="summary-table" style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr><th>Item</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p>Subtotal: ₹<span id="subtotal">0</span></p>
+      <p>Coupon: <input type="text" id="coupon" placeholder="Enter code" /> <button id="apply-coupon" class="btn primary small">Apply</button></p>
+      <p>Discount: ₹<span id="discount">0</span></p>
+      <p>GST (5%): ₹<span id="gst">0</span></p>
+      <p>Delivery: ₹<span id="delivery">0</span></p>
+      <h3>Total: ₹<span id="total">0</span></h3>
+      <button id="place-order-btn" class="btn primary">Place Order</button>
+    </section>
+  </main>
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/cart.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script>
+    const user = Session.getCurrentUser();
+    if (!user || user.type !== 'customer') { window.location.href = '../index.html'; }
+    document.getElementById('cart-count').textContent = Cart.getCount(user.id);
+    document.getElementById('logout-btn').addEventListener('click',()=>{ Session.clear(); window.location.href='../index.html'; });
+    // Render summary
+    function renderSummary(){
+      const cart = Cart.getCart(user.id);
+      const tbody = document.querySelector('#summary-table tbody');
+      tbody.innerHTML='';
+      const menu = Storage.getMenu();
+      let subtotal=0;
+      cart.forEach(entry=>{
+        const item = menu.find(i=>i.id===entry.itemId);
+        const lineTotal = item.price*entry.qty;
+        subtotal+=lineTotal;
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${item.name}</td><td>${entry.qty}</td><td>₹${item.price}</td><td>₹${lineTotal}</td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('subtotal').textContent=subtotal;
+      updateTotals();
+    }
+    let appliedCoupon='';
+    function updateTotals(){
+      const subtotal = parseInt(document.getElementById('subtotal').textContent)||0;
+      let discount=0;
+      if(appliedCoupon==='SAVE10' && subtotal>=300){ discount = Math.round(subtotal*0.10); }
+      const gst = Math.round((subtotal-discount)*0.05);
+      const delivery = subtotal>=500?0:30;
+      const total = subtotal - discount + gst + delivery;
+      document.getElementById('discount').textContent=discount;
+      document.getElementById('gst').textContent=gst;
+      document.getElementById('delivery').textContent=delivery;
+      document.getElementById('total').textContent=total;
+    }
+    document.getElementById('apply-coupon').addEventListener('click',()=>{
+      const code=document.getElementById('coupon').value.trim();
+      if(code==='SAVE10'){
+        appliedCoupon='SAVE10';
+        alert('Coupon applied');
+      } else {
+        appliedCoupon='';
+        alert('Invalid coupon');
+      }
+      updateTotals();
+    });
+    document.getElementById('place-order-btn').addEventListener('click',()=>{
+      const subtotal = parseInt(document.getElementById('subtotal').textContent)||0;
+      if(subtotal<100){
+        alert('Minimum order amount is ₹100');
+        return;
+      }
+      const cart = Cart.getCart(user.id);
+      if(cart.length===0){ alert('Cart empty'); return; }
+      // Verify stock again
+      const menu = Storage.getMenu();
+      for(const entry of cart){
+        const menuItem = menu.find(i=>i.id===entry.itemId);
+        if(!menuItem || menuItem.stock<entry.qty){
+          alert('Stock insufficient for '+menuItem.name);
+          return;
+        }
+      }
+      // Build order object
+      const orderId = Storage.getNextOrderId();
+      const items = cart.map(e=>{
+        const mi=menu.find(i=>i.id===e.itemId);
+        return {itemId:mi.id, name:mi.name, qty:e.qty, price:mi.price};
+      });
+      const discount = parseInt(document.getElementById('discount').textContent)||0;
+      const gst = parseInt(document.getElementById('gst').textContent)||0;
+      const delivery = parseInt(document.getElementById('delivery').textContent)||0;
+      const total = parseInt(document.getElementById('total').textContent)||0;
+      const order={
+        orderId,
+        customerId:user.id,
+        date:new Date().toISOString(),
+        items,
+        subtotal,
+        discount,
+        gst,
+        delivery,
+        total,
+        status:'Placed'
+      };
+      // Save order
+      const orders=Storage.getOrders();
+      orders.push(order);
+      Storage.setOrders(orders);
+      Storage.incrementOrderId();
+      // Reduce stock
+      const newMenu=menu.map(m=>{
+        const match=cart.find(c=>c.itemId===m.id);
+        if(match){ return {...m, stock: m.stock - match.qty}; }
+        return m;
+      });
+      Storage.setMenu(newMenu);
+      // Clear cart
+      Cart.clear(user.id);
+      // Redirect to success page with orderId in query
+      window.location.href=`order-success.html?orderId=${orderId}`;
+    });
+    renderSummary();
+  </script>
+</body>
+</html>

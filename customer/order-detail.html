@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Detail - Online Food Ordering</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/customer.css" />
+</head>
+<body>
+  <header class="navbar">
+    <h1>Order Detail</h1>
+    <nav>
+      <a href="home.html" class="nav-link">Home</a>
+      <a href="menu.html" class="nav-link">Menu</a>
+      <a href="cart.html" class="nav-link">Cart (<span id="cart-count">0</span>)</a>
+      <a href="my-orders.html" class="nav-link active">My Orders</a>
+      <button id="logout-btn" class="btn secondary small">Logout</button>
+    </nav>
+  </header>
+  <main>
+    <section class="customer-section" id="detail-section">
+      <h2>Order #<span id="order-id"></span></h2>
+      <p>Date: <span id="order-date"></span></p>
+      <p>Status: <span id="order-status"></span></p>
+      <table style="width:100%; border-collapse:collapse;" id="items-table">
+        <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p>Subtotal: ₹<span id="subtotal"></span></p>
+      <p>Discount: ₹<span id="discount"></span></p>
+      <p>GST: ₹<span id="gst"></span></p>
+      <p>Delivery: ₹<span id="delivery"></span></p>
+      <h3>Total: ₹<span id="total"></span></h3>
+    </section>
+  </main>
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    const user = Session.getCurrentUser();
+    if (!user || user.type !== 'customer') { window.location.href = '../index.html'; }
+    document.getElementById('cart-count').textContent = Cart.getCount(user.id);
+    document.getElementById('logout-btn').addEventListener('click',()=>{ Session.clear(); window.location.href='../index.html'; });
+    const params = App.getQueryParams();
+    const orderId = parseInt(params.orderId);
+    const order = Storage.getOrders().find(o=>o.orderId===orderId && o.customerId===user.id);
+    if(!order){ alert('Order not found'); window.location.href='my-orders.html'; }
+    else {
+      document.getElementById('order-id').textContent = order.orderId;
+      document.getElementById('order-date').textContent = new Date(order.date).toLocaleString();
+      document.getElementById('order-status').textContent = order.status;
+      const tbody = document.querySelector('#items-table tbody');
+      order.items.forEach(it=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${it.name}</td><td>${it.qty}</td><td>₹${it.price}</td><td>₹${it.price*it.qty}</td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('subtotal').textContent = order.subtotal;
+      document.getElementById('discount').textContent = order.discount;
+      document.getElementById('gst').textContent = order.gst;
+      document.getElementById('delivery').textContent = order.delivery;
+      document.getElementById('total').textContent = order.total;
+    }
+  </script>
+</body>
+</html>

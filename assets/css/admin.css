@@ -1,0 +1,7 @@
+/* Admin specific styles */
+.admin-section { padding:1rem; }
+.dashboard-stats { display:flex; flex-wrap:wrap; gap:1rem; }
+.stat-card { background:#fff; border:1px solid #ddd; border-radius:4px; padding:1rem; flex:1 1 200px; }
+.table { width:100%; border-collapse:collapse; }
+.table th, .table td { border:1px solid #ccc; padding:0.5rem; text-align:left; }
+.table th { background:#f0f0f0; }

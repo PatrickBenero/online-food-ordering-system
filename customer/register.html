@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Registration - Online Food Ordering</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/customer.css" />
+</head>
+<body>
+  <header class="navbar"><h1>Register</h1></header>
+  <main class="centered">
+    <section class="form-section">
+      <h2>Create Account</h2>
+      <label>Customer ID (numeric):</label>
+      <input type="number" id="cust-id" />
+      <label>Full Name:</label>
+      <input type="text" id="cust-name" />
+      <button id="register-btn" class="btn primary">Register</button>
+      <p><a href="../index.html">Back to login</a></p>
+    </section>
+  </main>
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script>
+    document.getElementById('register-btn').addEventListener('click', () => {
+      const id = document.getElementById('cust-id').value.trim();
+      const name = document.getElementById('cust-name').value.trim();
+      if (!id || !name) return alert('All fields required');
+      const customers = Storage.getCustomers();
+      if (customers.some(c => c.id === id)) {
+        alert('Customer ID already exists');
+        return;
+      }
+      customers.push({id, name});
+      Storage.setCustomers(customers);
+      alert('Registration successful');
+      window.location.href = '../index.html';
+    });
+  </script>
+</body>
+</html>

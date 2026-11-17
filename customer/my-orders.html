@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Orders - Online Food Ordering</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/customer.css" />
+</head>
+<body>
+  <header class="navbar">
+    <h1>My Orders</h1>
+    <nav>
+      <a href="home.html" class="nav-link">Home</a>
+      <a href="menu.html" class="nav-link">Menu</a>
+      <a href="cart.html" class="nav-link">Cart (<span id="cart-count">0</span>)</a>
+      <a href="my-orders.html" class="nav-link active">My Orders</a>
+      <button id="logout-btn" class="btn secondary small">Logout</button>
+    </nav>
+  </header>
+  <main>
+    <section id="orders-container" class="customer-section"></section>
+  </main>
+  <script src="../assets/js/storage.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/orders.js"></script>
+  <script>
+    const user = Session.getCurrentUser();
+    if (!user || user.type !== 'customer') { window.location.href = '../index.html'; }
+    document.getElementById('cart-count').textContent = Cart.getCount(user.id);
+    document.getElementById('logout-btn').addEventListener('click',()=>{ Session.clear(); window.location.href='../index.html'; });
+    Orders.renderCustomerOrders('orders-container');
+  </script>
+</body>
+</html>

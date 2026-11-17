@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Food Ordering System</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/customer.css" />
+</head>
+<body>
+  <header class="navbar">
+    <h1>Online Food Ordering</h1>
+  </header>
+  <main class="centered">
+    <section class="welcome">
+      <h2>Welcome!</h2>
+      <p>Enter your Customer ID to continue.</p>
+      <input type="number" id="customer-id" placeholder="Customer ID" />
+      <button id="customer-login-btn" class="btn primary">Login as Customer</button>
+      <p>New? <a href="customer/register.html">Register here</a></p>
+      <hr />
+      <a href="admin/login.html" class="btn secondary">Admin Login</a>
+    </section>
+  </main>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script>
+    document.getElementById('customer-login-btn').addEventListener('click', () => {
+      const id = document.getElementById('customer-id').value.trim();
+      if (!id) return alert('Please enter Customer ID');
+      const customers = Storage.getCustomers();
+      const cust = customers.find(c => c.id === id);
+      if (cust) {
+        Session.setCurrentUser({type: 'customer', id: cust.id});
+        window.location.href = 'customer/home.html';
+      } else {
+        alert('Customer ID not found. Please register.');
+      }
+    });
+  </script>
+</body>
+</html>
